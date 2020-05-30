@@ -1,32 +1,8 @@
 import React, { Component } from 'react';
-import { View, StyleSheet, TextInput, TouchableOpacity, Text } from 'react-native';
-// import { createSwitchNavigator, createAppContainer , create } from 'react-navigation';
+import { View, StyleSheet, TextInput, TouchableOpacity, Text,Button } from 'react-native';
 
 import AsyncStorage from '@react-native-community/async-storage';
 
-// const Screen1 = () =>(
-//   <View><Text>Screen 1</Text></View>
-// );
-
-// const Screen2 = () =>(
-//   <View><Text>Screen 2</Text></View>
-// );
-
-// const Screen3 = () =>(
-//   <View><Text>Screen 3</Text></View>
-// );
-
-// export default createAppContainer(createSwitchNavigator({
-//   Screen1 : {
-//     screen: Screen1
-//   },
-//   Screen2 : {
-//     screen: Screen2
-//   },
-//   Screen3 : {
-//     screen: Screen3
-//   },
-// }))
 
 
 export default class App extends Component {
@@ -36,7 +12,10 @@ export default class App extends Component {
       turma: '',
       sala: '',
       doing: '',
-      turmas : []
+      turmas : [],
+      turmaSelecionada: {},
+      novoAluno: '',
+      matriculaNovo : ''
     };
   };
 
@@ -59,6 +38,16 @@ export default class App extends Component {
     this.setState({turmas: []});
   };
 
+  lastIdPlusOne = () => {
+    let { turmas } =  this.state;
+ 
+    let last = 0;
+    if(turmas){
+      turmas.map( t => t.id > last ? last = t.id : last = last)
+    }
+    return last +1;
+  }
+
   salvarTurma = () => {
     const { turma, sala } = this.state;
 
@@ -67,15 +56,17 @@ export default class App extends Component {
         turmas => {
           let ar = [];
 
+          let id = this.lastIdPlusOne(turmas);
+
           if(turmas){
             ar = JSON.parse(turmas);
-            let t = { turma : turma , sala: sala};
+            let t = { id: id ,turma : turma , sala: sala, alunos: []};
             ar.push(t);
 
             AsyncStorage.setItem('turmas', JSON.stringify(ar));
 
           }else{
-            let t = { turma : turma , sala: sala};
+            let t = { id: id, turma : turma , sala: sala, alunos: []};
             ar.push(t);
             AsyncStorage.setItem('turmas', JSON.stringify(ar));
           }
@@ -96,57 +87,41 @@ export default class App extends Component {
   };
 
 
-  updateTurmasState = () => {
-    
+  verTurma = (turma) => {
+    this.setState({doing: 'pageTurma', turmaSelecionada: turma});
   }
 
   listaTurmasScreen = () => {
 
     const {turmas} = this.state;
     
-    console.log(turmas);
+    // console.log(turmas);
 
     return(
       <View style={styles.container}>
       <Text>Turmas do Adalto</Text>      
       {
         turmas.map(t => {
-            return <Text>Turma: {t.turma} | Sala: {t.sala}</Text>
+            let { turma, sala, id } = t;
+
+            return (<View>
+            <Text>Id: {id} | Turma: {turma} | Sala: {sala}</Text>
+            <Button title='Ver turma' onPress={() => this.verTurma(t)} />
+            </View>)
         })
       }
 
 
     <TouchableOpacity
       onPress={()=> this.setState({doing: ''}) }
-      style={styles.button}>
+      style={styles.button}> 
       <Text style={styles.buttonText}>Voltar</Text>
     </TouchableOpacity> 
       </View>
     )
   }
 
-//   <View style={styles.container}>      
-//   <TextInput
-//     placeholder="Registre um Aluno"
-//     value={this.state.textInputData}
-//     onChangeText={data => this.setState({textInputData: data})}
-//     style={styles.textInputStyle}
-//   />
-  
-//   <TouchableOpacity
-//     onPress={this.saveValueFunction}
-//     style={styles.button}>
-//     <Text style={styles.buttonText}>Salvar Aluno</Text>
-//   </TouchableOpacity>
-  
-//   <TouchableOpacity
-//     onPress={this.getValueFunction}
-//     style={styles.button}>
-//     <Text style={styles.buttonText}>Ler Aluno</Text>
-//   </TouchableOpacity>       
-  
-//   <Text style={styles.text}>{this.state.getValue}</Text> 
-// </View>
+
 
   addTurmaScreen = () => (
     <View style={styles.container}>      
@@ -180,6 +155,80 @@ export default class App extends Component {
     </View>
   );
 
+  salvarNovoAluno = () =>{
+    //Array de turma do State
+    let { turmas, novoAluno, matriculaNovo } = this.state;
+
+    //Id da selecionada
+    let {id, turma } = this.state.turmaSelecionada;
+    
+    //Novo aluno
+    const novo = { nome: novoAluno, matricula: matriculaNovo, turma: turma };
+    
+    //Procura a turma seleciona pelo id e adiciona o novo aluna
+    turmas.map(t=> {
+      if(t.id == id){
+        t.alunos.push(novo);
+      }
+    })
+
+    //Salva no dispositivo fazendo overide
+    AsyncStorage.setItem('turmas', JSON.stringify(turmas));
+
+    //Atualiza no state
+    console.log(turmas);
+    this.setState({turmas: turmas});
+
+
+  }
+
+  pageTurmaScreen = () => {
+    let { turma, sala, alunos } = this.state.turmaSelecionada;
+    
+
+    return(
+    <View style={styles.container}>
+        <Text>Turma: {turma} | Sala {sala} </Text>      
+        <TextInput
+          placeholder="Nome do aluno"
+          value={this.state.novoAluno}
+          onChangeText={data => this.setState({novoAluno: data})}
+          style={styles.textInputStyle}
+        />
+
+      <TextInput
+        placeholder="Matricula"
+        value={this.state.matriculaNovo}
+        onChangeText={data => this.setState({matriculaNovo: data})}
+        style={styles.textInputStyle}
+      />
+
+      <TouchableOpacity
+        onPress={this.salvarNovoAluno}
+        style={styles.button}>
+        <Text style={styles.buttonText}>Salvar Aluno</Text>
+      </TouchableOpacity>
+      
+      <TouchableOpacity
+          onPress={()=> this.setState({doing: 'listarTurmas'}) }
+          style={styles.button}>
+          <Text style={styles.buttonText}>Voltar</Text>
+        </TouchableOpacity>    
+      
+        {
+        alunos.map(a => {
+            let { nome, matricula } = a;
+
+            return (<View>
+            <Text>Aluno: {nome} | Matricula: {matricula} </Text>
+            </View>)
+        })
+      }
+    </View>
+  )};
+
+
+
   welcomeScreen = () => (
     <View style={styles.container}>      
     <Text>O que tu quer?</Text>
@@ -202,11 +251,6 @@ export default class App extends Component {
       <Text style={styles.buttonText}>Apagar Turmas</Text>
     </TouchableOpacity>
 
-    <TouchableOpacity
-      onPress={()=> this.setState({doing: 'addAlunoTurma'}) }
-      style={styles.button}>
-      <Text style={styles.buttonText}>Add aluno na Turma</Text>
-    </TouchableOpacity>
   </View>
   )
 
@@ -219,6 +263,9 @@ export default class App extends Component {
 
       case 'listarTurmas':
         return this.listaTurmasScreen();
+
+      case 'pageTurma':
+        return this.pageTurmaScreen();
 
       default:
         return this.welcomeScreen();
