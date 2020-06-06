@@ -1,11 +1,17 @@
 import React, { Component } from 'react';
-import { View, StyleSheet, TextInput, TouchableOpacity, Text,Button } from 'react-native';
-
+import { View, StyleSheet, TextInput, TouchableOpacity, Text, Button, ScrollView } from 'react-native';
+import Header from './Header';
 import AsyncStorage from '@react-native-community/async-storage';
 
 
 
 export default class App extends Component {
+  render(){
+    return(
+      <Header/>
+    )
+  }
+
   constructor(props) {
     super(props);
     this.state = {
@@ -99,14 +105,17 @@ export default class App extends Component {
 
     return(
       <View style={styles.container}>
-      <Text>Turmas do Adalto</Text>      
+           
       {
         turmas.map(t => {
             let { turma, sala, id } = t;
 
-            return (<View>
-            <Text>Id: {id} | Turma: {turma} | Sala: {sala}</Text>
-            <Button title='Ver turma' onPress={() => this.verTurma(t)} />
+            return (<View >
+              <View style={styles.turma}>
+            <Text >{id} Turma: {turma}</Text>
+            <Text > Sala: {sala}</Text>
+              </View>
+            <Button  title='Ver turma' onPress={() => this.verTurma(t)} />
             </View>)
         })
       }
@@ -187,8 +196,12 @@ export default class App extends Component {
     
 
     return(
+      <ScrollView>
     <View style={styles.container}>
-        <Text>Turma: {turma} | Sala {sala} </Text>      
+        <View style={styles.turmaPage}>
+            <Text >Turma: {turma}</Text>
+            <Text > Sala: {sala}</Text>
+        </View>     
         <TextInput
           placeholder="Nome do aluno"
           value={this.state.novoAluno}
@@ -219,20 +232,30 @@ export default class App extends Component {
         alunos.map(a => {
             let { nome, matricula } = a;
 
-            return (<View>
-            <Text>Aluno: {nome} | Matricula: {matricula} </Text>
-            </View>)
+            return(
+            
+            
+              
+              <View style={styles.turmaResult}>
+                   <Text >Aluno: {nome}</Text>
+                   <Text > Matrícula: {matricula}</Text>
+              </View> 
+               
+            
+            )
         })
       }
     </View>
+    </ScrollView>
   )};
 
 
 
   welcomeScreen = () => (
-    <View style={styles.container}>      
-    <Text>O que tu quer?</Text>
-  
+    
+    <View style={styles.container}>   
+    
+ 
     <TouchableOpacity
       onPress={()=> this.setState({doing: 'addTurma'}) }
       style={styles.button}>
@@ -287,25 +310,72 @@ const styles = StyleSheet.create({
     margin: 10,
   },
   textInputStyle: {
+    width: 300,
+    height: 50,
+    padding:5,
+    backgroundColor: 'snow',
+    marginTop: 3,
+    marginBottom: 3,
     textAlign: 'center',
-    width: '100%',
+    borderColor: 'black',
     borderWidth: 1,
-    borderColor: 'blue',
-    fontSize: 30,
+    borderRadius: 10,
+    color: 'black'
   },
   button: {
     width: '100%',
     height: 40,
     padding: 10,
-    backgroundColor: 'blue',
+    backgroundColor: '#CDC9C9',
     marginTop: 10,
+    borderRadius: 50,
   },
   buttonText: {
     textAlign: 'center',
-    color: 'white',
+    color: 'black',
   },
   text: {
     textAlign: 'center',
     fontSize: 30,
   },
+  turma: {
+    width: 300,
+    height: 50,
+    padding:5,
+    backgroundColor: '#FFFAFA',
+    marginTop: 10,
+    marginBottom: 3,
+    textAlign: 'center',
+    borderColor: 'black',
+    borderWidth: 1,
+    borderRadius: 10,
+  },
+  turmaText: {
+    fontSize: 20,
+    fontWeight: 'bold'
+  },
+  turmaPage: {
+    width: 300,
+    height: 50,
+    padding:5,
+    backgroundColor: '#DEB887',
+    marginTop: 40,
+    marginBottom: 10,
+    textAlign: 'center',
+    borderColor: 'black',
+    borderWidth: 1,
+    borderRadius: 10,
+  },
+  turmaResult: {
+    width: 300,
+    height: 50,
+    padding:5,
+    backgroundColor: '#EEE8AA',
+    marginTop: 10,
+    marginBottom:10,
+    textAlign: 'center',
+    borderColor: 'black',
+    borderWidth: 1,
+    borderRadius: 10,
+  }
 });
